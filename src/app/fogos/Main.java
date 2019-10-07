@@ -227,7 +227,7 @@ public class Main {
         // FlexID id = factory.generateDeviceID();
 
         System.out.println("Identity");
-        System.out.println("{ " + byteArrayToHex(id.getIdentity()) + " }");
+        System.out.println(byteArrayToHex(id.getIdentity(), -1));
 
         id.setLocator(loc);
 
@@ -240,19 +240,28 @@ public class Main {
         secureFlexIDSession.getSecurityParameters().setMasterSecret(masterKey);
 
         // Receive the test message
-        secureFlexIDSession.recv(buf, 16384);
-
-        try {
-            System.out.println("Received Message: " + new String(buf, "UTF-8"));
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+        int rcvd = -1;
+        while (rcvd < 0) {
+            rcvd = secureFlexIDSession.recv(buf, 16384);
         }
+
+        System.out.println("Received: " + rcvd + " bytes");
+        System.out.println("Received Message");
+        System.out.println(byteArrayToHex(buf, rcvd));
+
+        secureFlexIDSession.getFlexIDSession().close();
     }
 
-    static String byteArrayToHex(byte[] a) {
+    // If len is -1, then the function automatically calculate the length of the byte array.
+    static String byteArrayToHex(byte[] a, int len) {
+        if (len < 0)
+            len = a.length;
+        byte[] tmp = new byte[len];
         int idx = 0;
         StringBuilder sb = new StringBuilder();
-        for (final byte b: a) {
+        System.arraycopy(a, 0, tmp, 0, len);
+
+        for (final byte b: tmp) {
             sb.append(String.format("0x%02x, ", b & 0xff));
             idx++;
             if (idx % 8 == 0)
