@@ -248,8 +248,13 @@ public class Main {
         System.out.println("Received: " + rcvd + " bytes");
         System.out.println("Received Message");
         System.out.println(byteArrayToHex(buf, rcvd));
+        try {
+            System.out.println("Received String: " + new String(buf, "UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
 
-        secureFlexIDSession.getFlexIDSession().close();
+        secureFlexIDSession.close();
     }
 
     // If len is -1, then the function automatically calculate the length of the byte array.
