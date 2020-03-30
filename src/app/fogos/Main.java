@@ -14,8 +14,12 @@ import java.security.Key;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Base64;
 import java.util.logging.Level;
+import java.security.Security;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 public class Main {
     private static final String TAG = "FogOSSecureResponder";
@@ -211,7 +215,8 @@ public class Main {
             (byte) 0x26, (byte) 0xab, (byte) 0x47, (byte) 0xac, (byte) 0xf0, (byte) 0xec, (byte) 0x83, (byte) 0xda,
             (byte) 0x6f, (byte) 0x02, (byte) 0x03, (byte) 0x01, (byte) 0x00, (byte) 0x01};
 
-    public static void main(String[] args) throws NoSuchAlgorithmException {
+    public static void main(String[] args) throws Exception {
+        java.util.logging.Logger.getLogger(TAG).setLevel(Level.SEVERE);
         FlexIDFactory factory = new FlexIDFactory();
         String addr = "127.0.0.1";
         int port = 5555;
@@ -231,13 +236,29 @@ public class Main {
 
         id.setLocator(loc);
 
-        java.util.logging.Logger.getLogger(TAG).log(Level.INFO, "Start: SecureResponder");
+        // HANDSHAKE START
+
+        Instant start = Instant.now();
+        java.util.logging.Logger.getLogger(TAG).log(Level.INFO, "Start:  SecureResponder");
         SecureFlexIDSession secureFlexIDSession = new SecureFlexIDSession(Role.RESPONDER, id);
         java.util.logging.Logger.getLogger(TAG).log(Level.INFO, "After initializing SecureFlexIDSession");
-        secureFlexIDSession.doHandshake();
+
+        int ret;
+        start = Instant.now();
+        ret = secureFlexIDSession.doHandshake(1);
+
+        Instant finish  = Instant.now();
+
+        long timeElapsed = Duration.between(start, finish).toMillis();
+
+        System.out.println("HANDSHAKE TIME::::::::: " + timeElapsed);
+
+        System.out.println("HADNSHAKE DONE");
+
+        //---- HANDSHAKE TIME
 
         // TODO: Remove this Test Code when the implementation for the handshake is complete.
-        secureFlexIDSession.getSecurityParameters().setMasterSecret(masterKey);
+        //secureFlexIDSession.getSecurityParameters().setMasterSecret(masterKey);
 
         // Receive the test message
         int rcvd = -1;
@@ -254,6 +275,7 @@ public class Main {
             e.printStackTrace();
         }
 
+        //----- RECORD LAYER TIME
         secureFlexIDSession.close();
     }
 
